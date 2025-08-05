@@ -31,7 +31,7 @@ const HomePage: React.FC = () => {
       {/* Remplacer le titre textuel par le logo */}
       <div style={{ textAlign: "center", marginBottom: "1rem" }}>
         <img
-          src="/logo.png"
+          src="/CUNI-lympiades/logo.png"
           alt="CUNIlympiades logo"
           /* Réduire la taille du logo pour une meilleure intégration */
           style={{ maxWidth: "180px", height: "auto" }}
