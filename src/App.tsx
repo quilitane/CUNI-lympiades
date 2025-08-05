@@ -16,7 +16,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/CUNI-lympiades/admin" element={<AdminPage />} />
           <Route path="/CUNI-lympiades/" element={<HomePage />} />
-          <Route path="*" element={<Navigate to="/UNI-lympiades/" />} />
+          <Route path="*" element={<Navigate to="/CUNI-lympiades/" />} />
         </Routes>
       </Router>
     </DataProvider>
