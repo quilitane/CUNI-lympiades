@@ -29,7 +29,11 @@ interface DataContextValue {
    * effectuer l'échange. Les points personnels sont conservés et les totaux d'équipe
    * sont ajustés en conséquence.
    */
-  swapPlayers: (playerId: string, targetTeamId: string, targetPlayerId: string) => void;
+  swapPlayers: (
+    playerId: string,
+    targetTeamId: string,
+    targetPlayerId: string
+  ) => void;
 }
 
 const DataContext = createContext<DataContextValue | undefined>(undefined);
@@ -37,7 +41,10 @@ const DataContext = createContext<DataContextValue | undefined>(undefined);
 /**
  * Charge les données initiales depuis le stockage local ou les fichiers JSON statiques.
  */
-async function loadInitialData(): Promise<{ teams: Team[]; challenges: Challenge[] }> {
+async function loadInitialData(): Promise<{
+  teams: Team[];
+  challenges: Challenge[];
+}> {
   // 1. Vérifier le localStorage
   try {
     const stored = localStorage.getItem("cunilyData");
@@ -56,25 +63,34 @@ async function loadInitialData(): Promise<{ teams: Team[]; challenges: Challenge
       localStorage.removeItem("cunilyData");
     }
   } catch (err) {
-    console.warn("Impossible de récupérer les données depuis le localStorage:", err);
+    console.warn(
+      "Impossible de récupérer les données depuis le localStorage:",
+      err
+    );
   }
   // 2. Tenter de charger depuis le backend
   try {
     const [teamsRes, challengesRes] = await Promise.all([
-      fetch("http://localhost:3000/api/teams"),
-      fetch("http://localhost:3000/api/challenges"),
+      fetch("https://cuni-lympiades-backend.onrender.com/api/teams"),
+      fetch("https://cuni-lympiades-backend.onrender.com/api/challenges"),
     ]);
     if (teamsRes.ok && challengesRes.ok) {
       const teams: Team[] = (await teamsRes.json()) as unknown as Team[];
-      const challenges: Challenge[] = (await challengesRes.json()) as unknown as Challenge[];
+      const challenges: Challenge[] =
+        (await challengesRes.json()) as unknown as Challenge[];
       return { teams, challenges };
     }
   } catch (err) {
-    console.warn("Erreur lors de la récupération des données depuis le backend :", err);
+    console.warn(
+      "Erreur lors de la récupération des données depuis le backend :",
+      err
+    );
   }
   // 3. Fallback : importer les fichiers JSON statiques
-  const teams: Team[] = ((await import("../data/teams.json")).default as unknown) as Team[];
-  const challenges: Challenge[] = ((await import("../data/challenges.json")).default as unknown) as Challenge[];
+  const teams: Team[] = (await import("../data/teams.json"))
+    .default as unknown as Team[];
+  const challenges: Challenge[] = (await import("../data/challenges.json"))
+    .default as unknown as Challenge[];
   return { teams, challenges };
 }
 
@@ -93,7 +109,8 @@ export const DataProvider: React.FC<{
   // Chargement des données au premier rendu
   useEffect(() => {
     (async () => {
-      const { teams: initTeams, challenges: initChallenges } = await loadInitialData();
+      const { teams: initTeams, challenges: initChallenges } =
+        await loadInitialData();
       setTeams(initTeams);
       setChallenges(initChallenges);
     })();
@@ -104,37 +121,48 @@ export const DataProvider: React.FC<{
     (async () => {
       // D'abord, essayer de charger depuis le localStorage
       try {
-        const storedSettings = localStorage.getItem('cunilySettings');
+        const storedSettings = localStorage.getItem("cunilySettings");
         if (storedSettings) {
           const parsed = JSON.parse(storedSettings);
-          if (typeof parsed.suspenseMode === 'boolean') {
+          if (typeof parsed.suspenseMode === "boolean") {
             setSuspenseMode(parsed.suspenseMode);
           }
           if (Array.isArray(parsed.suspenseOrder)) {
             setSuspenseOrder(parsed.suspenseOrder);
           }
-          if (typeof parsed.pauseUntil === 'string' || parsed.pauseUntil === null) {
+          if (
+            typeof parsed.pauseUntil === "string" ||
+            parsed.pauseUntil === null
+          ) {
             setPauseUntil(parsed.pauseUntil ?? null);
           }
         }
       } catch (err) {
-        console.warn('Impossible de récupérer les paramètres dans le localStorage:', err);
+        console.warn(
+          "Impossible de récupérer les paramètres dans le localStorage:",
+          err
+        );
       }
       // Ensuite, tenter de récupérer l'état global auprès du backend
       try {
-        const res = await fetch('http://localhost:3000/api/state');
+        const res = await fetch(
+          "https://cuni-lympiades-backend.onrender.com/api/state"
+        );
         if (res.ok) {
           const data = await res.json();
-          if (typeof data.suspenseMode === 'boolean') {
+          if (typeof data.suspenseMode === "boolean") {
             setSuspenseMode(data.suspenseMode);
           }
-          if (data.pauseUntil === null || typeof data.pauseUntil === 'string') {
+          if (data.pauseUntil === null || typeof data.pauseUntil === "string") {
             setPauseUntil(data.pauseUntil);
           }
         }
       } catch (err) {
         // Si le backend n'est pas disponible, ignorer silencieusement
-        console.warn('Impossible de récupérer l\'état global depuis le backend:', err);
+        console.warn(
+          "Impossible de récupérer l'état global depuis le backend:",
+          err
+        );
       }
     })();
   }, []);
@@ -145,7 +173,10 @@ export const DataProvider: React.FC<{
     try {
       localStorage.setItem("cunilyData", JSON.stringify(data));
     } catch (err) {
-      console.warn("Impossible de sauvegarder les données dans le localStorage:", err);
+      console.warn(
+        "Impossible de sauvegarder les données dans le localStorage:",
+        err
+      );
     }
   }, [teams, challenges]);
 
@@ -153,13 +184,19 @@ export const DataProvider: React.FC<{
   useEffect(() => {
     const settings = { suspenseMode, suspenseOrder, pauseUntil };
     try {
-      localStorage.setItem('cunilySettings', JSON.stringify(settings));
+      localStorage.setItem("cunilySettings", JSON.stringify(settings));
     } catch (err) {
-      console.warn('Impossible de sauvegarder les paramètres dans le localStorage:', err);
+      console.warn(
+        "Impossible de sauvegarder les paramètres dans le localStorage:",
+        err
+      );
     }
   }, [suspenseMode, suspenseOrder, pauseUntil]);
 
-  const toggleChallengeValidation = async (teamId: string, challengeId: string) => {
+  const toggleChallengeValidation = async (
+    teamId: string,
+    challengeId: string
+  ) => {
     // Mettre à jour localement
     setChallenges((prevChallenges) => {
       return prevChallenges.map((ch) => {
@@ -192,12 +229,16 @@ export const DataProvider: React.FC<{
             newPoints += challenge.points;
           }
         }
-        return { ...team, completedChallenges: Array.from(completedSet), points: newPoints };
+        return {
+          ...team,
+          completedChallenges: Array.from(completedSet),
+          points: newPoints,
+        };
       });
     });
     // Envoyer au backend
     try {
-      await fetch("http://localhost:3000/api/validate", {
+      await fetch("https://cuni-lympiades-backend.onrender.com/api/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamId, challengeId }),
@@ -243,23 +284,34 @@ export const DataProvider: React.FC<{
               if (newPoints < 0) newPoints = 0;
             }
           }
-          return { ...team, completedChallenges: newCompleted, points: newPoints };
+          return {
+            ...team,
+            completedChallenges: newCompleted,
+            points: newPoints,
+          };
         });
       });
     }
     // Envoyer la mise à jour au backend
     try {
-      await fetch("http://localhost:3000/api/toggleDisabled", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ challengeId }),
-      });
+      await fetch(
+        "https://cuni-lympiades-backend.onrender.com/api/toggleDisabled",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ challengeId }),
+        }
+      );
     } catch (err) {
       console.warn("Erreur d'envoi au backend (toggleDisabled):", err);
     }
   };
 
-  const addPersonalPoints = async (teamId: string, playerId: string, amount: number) => {
+  const addPersonalPoints = async (
+    teamId: string,
+    playerId: string,
+    amount: number
+  ) => {
     // Mettre à jour localement
     setTeams((prevTeams) => {
       return prevTeams.map((team) => {
@@ -268,16 +320,23 @@ export const DataProvider: React.FC<{
           if (player.id !== playerId) return player;
           return { ...player, personalPoints: player.personalPoints + amount };
         });
-        return { ...team, players: updatedPlayers, points: team.points + amount };
+        return {
+          ...team,
+          players: updatedPlayers,
+          points: team.points + amount,
+        };
       });
     });
     // Envoyer au backend
     try {
-      await fetch("http://localhost:3000/api/addPersonalPoints", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamId, playerId, amount }),
-      });
+      await fetch(
+        "https://cuni-lympiades-backend.onrender.com/api/addPersonalPoints",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teamId, playerId, amount }),
+        }
+      );
     } catch (err) {
       console.warn("Erreur d'envoi au backend:", err);
     }
@@ -304,13 +363,19 @@ export const DataProvider: React.FC<{
     // Envoyer au backend pour qu'il persiste l'état global
     (async () => {
       try {
-        await fetch('http://localhost:3000/api/setSuspense', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ active }),
-        });
+        await fetch(
+          "https://cuni-lympiades-backend.onrender.com/api/setSuspense",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ active }),
+          }
+        );
       } catch (err) {
-        console.warn('Erreur lors de l\'envoi de l\'état de suspens au backend:', err);
+        console.warn(
+          "Erreur lors de l'envoi de l'état de suspens au backend:",
+          err
+        );
       }
     })();
   };
@@ -321,13 +386,19 @@ export const DataProvider: React.FC<{
     // Envoyer au backend pour fixer la pause
     (async () => {
       try {
-        await fetch('http://localhost:3000/api/setPause', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ resumeAt }),
-        });
+        await fetch(
+          "https://cuni-lympiades-backend.onrender.com/api/setPause",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ resumeAt }),
+          }
+        );
       } catch (err) {
-        console.warn('Erreur lors de la définition de la pause au backend:', err);
+        console.warn(
+          "Erreur lors de la définition de la pause au backend:",
+          err
+        );
       }
     })();
   };
@@ -338,13 +409,19 @@ export const DataProvider: React.FC<{
     // Envoyer au backend pour annuler la pause
     (async () => {
       try {
-        await fetch('http://localhost:3000/api/setPause', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ resumeAt: null }),
-        });
+        await fetch(
+          "https://cuni-lympiades-backend.onrender.com/api/setPause",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ resumeAt: null }),
+          }
+        );
       } catch (err) {
-        console.warn('Erreur lors de l\'annulation de la pause au backend:', err);
+        console.warn(
+          "Erreur lors de l'annulation de la pause au backend:",
+          err
+        );
       }
     })();
   };
@@ -352,15 +429,19 @@ export const DataProvider: React.FC<{
   /**
    * Échange deux joueurs entre équipes et met à jour les totaux de points des équipes.
    */
-  const swapPlayers = async (playerId: string, targetTeamId: string, targetPlayerId: string) => {
+  const swapPlayers = async (
+    playerId: string,
+    targetTeamId: string,
+    targetPlayerId: string
+  ) => {
     setTeams((prevTeams) => {
       // Copie profonde minimale des équipes et de leurs joueurs
       const newTeams = prevTeams.map((team) => ({
         ...team,
         players: team.players.map((p) => ({ ...p })),
       }));
-      let teamA: typeof newTeams[number] | undefined;
-      let teamB: typeof newTeams[number] | undefined;
+      let teamA: (typeof newTeams)[number] | undefined;
+      let teamB: (typeof newTeams)[number] | undefined;
       let idxA = -1;
       let idxB = -1;
       // Trouver la première équipe et l'indice du joueur à déplacer
@@ -382,19 +463,21 @@ export const DataProvider: React.FC<{
       teamA.players[idxA] = playerB;
       teamB.players[idxB] = playerA;
       // Ajuster les points d'équipe (points personnels se déplacent avec le joueur)
-      teamA.points = teamA.points - playerA.personalPoints + playerB.personalPoints;
-      teamB.points = teamB.points - playerB.personalPoints + playerA.personalPoints;
+      teamA.points =
+        teamA.points - playerA.personalPoints + playerB.personalPoints;
+      teamB.points =
+        teamB.points - playerB.personalPoints + playerA.personalPoints;
       return newTeams;
     });
     // Envoyer au backend
     try {
-      await fetch('http://localhost:3000/api/swapPlayers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("https://cuni-lympiades-backend.onrender.com/api/swapPlayers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerId, targetTeamId, targetPlayerId }),
       });
     } catch (err) {
-      console.warn('Erreur lors de l\'échange de joueurs au backend:', err);
+      console.warn("Erreur lors de l'échange de joueurs au backend:", err);
     }
   };
 
@@ -419,7 +502,9 @@ export const DataProvider: React.FC<{
 export const useData = (): DataContextValue => {
   const ctx = useContext(DataContext);
   if (!ctx) {
-    throw new Error("useData doit être utilisé à l'intérieur d'un DataProvider");
+    throw new Error(
+      "useData doit être utilisé à l'intérieur d'un DataProvider"
+    );
   }
   return ctx;
 };
