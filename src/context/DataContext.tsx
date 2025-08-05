@@ -145,6 +145,7 @@ export const DataProvider: React.FC<{
       }
       // Ensuite, tenter de récupérer l'état global auprès du backend
       try {
+        console.log("test");
         const res = await fetch(
           "https://cuni-lympiades-backend.onrender.com/api/state"
         );
