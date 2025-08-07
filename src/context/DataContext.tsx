@@ -14,6 +14,8 @@ interface DataContextValue {
   toggleChallengeValidation: (teamId: string, challengeId: string) => void;
   /** Ajoute des points personnels à un joueur et met à jour l'équipe. */
   addPersonalPoints: (teamId: string, playerId: string, amount: number) => void;
+  // Retire les points d'un défi et met à jour les équipes gagnantes.
+  removePersonalPoints: (teamId: string, playerId: string, amount: number) => void;
   /** Active ou désactive un défi. Les défis désactivés ne rapportent pas de points et ne sont pas affichés aux joueurs. */
   toggleChallengeDisabled: (challengeId: string) => void;
   /** Active ou désactive le mode suspens. */
@@ -317,6 +319,40 @@ export const DataProvider: React.FC<{
     }
   };
 
+  const removePersonalPoints = async (
+    teamId: string,
+    playerId: string,
+    amount: number
+  ) => {
+    // Mettre à jour localement
+    setTeams((prevTeams) => {
+      return prevTeams.map((team) => {
+        if (team.id !== teamId) return team;
+        const updatedPlayers = team.players.map((player) => {
+          if (player.id !== playerId) return player;
+          return { ...player, personalPoints: player.personalPoints - amount };
+        });
+        return {
+          ...team,
+          players: updatedPlayers,
+          points: team.points - amount,
+        };
+      });
+    });
+    // Envoyer au backend
+    try {
+      await fetch(`https://cuni-lympiades-backend.onrender.com/api/removePersonalPoints?t=${Date.now()}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teamId, playerId, amount }),
+        }
+      );
+    } catch (err) {
+      console.warn("Erreur d'envoi au backend:", err);
+    }
+  };
+
   /**
    * Active ou désactive le mode suspens. Lorsque activé, on génère un ordre aléatoire des équipes.
    */
@@ -461,6 +497,7 @@ export const DataProvider: React.FC<{
     pauseUntil,
     toggleChallengeValidation,
     addPersonalPoints,
+    removePersonalPoints,
     toggleChallengeDisabled,
     setSuspense,
     startPause,

@@ -104,6 +104,7 @@ const AdminPage: React.FC = () => {
     challenges,
     toggleChallengeValidation,
     addPersonalPoints,
+    removePersonalPoints,
     toggleChallengeDisabled,
     suspenseMode,
     pauseUntil,
@@ -403,6 +404,18 @@ const AdminPage: React.FC = () => {
                       const amount = parseInt(pointInputs[key], 10);
                       if (!isNaN(amount) && amount > 0) {
                         addPersonalPoints(player.teamId, player.id, amount);
+                        setPointInputs({ ...pointInputs, [key]: '' });
+                      }
+                    }}
+                  >
+                    Ajouter
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      const amount = parseInt(pointInputs[key], 10);
+                      if (!isNaN(amount) && amount > 0) {
+                        removePersonalPoints(player.teamId, player.id, amount);
                         setPointInputs({ ...pointInputs, [key]: '' });
                       }
                     }}
