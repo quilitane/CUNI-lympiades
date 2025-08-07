@@ -420,7 +420,7 @@ const AdminPage: React.FC = () => {
                       }
                     }}
                   >
-                    Ajouter
+                    Retirer
                   </Button>
                 </div>
               </PlayerRow>
