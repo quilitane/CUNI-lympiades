@@ -101,6 +101,8 @@ export interface ChallengeCardProps {
   completedByTeam?: boolean;
   /** Couleur principale à utiliser pour la bordure lorsqu'il est complété par l'équipe sélectionnée. */
   highlightColor?: string;
+  /** Indique si la carte doit être affichée sans couleur (pour les défis rares/secrets dans la vue générale). */
+  makeUncolored?: boolean;
   /** Mode d'affichage : `all` pour la vue générale, `team` pour la vue par équipe. */
   mode: "all" | "team";
 }
@@ -110,6 +112,7 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({
   statuses,
   completedByTeam,
   highlightColor,
+  makeUncolored = false,
   mode,
 }) => {
   const [open, setOpen] = useState(false);
@@ -120,6 +123,7 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({
   // Si aucune équipe sélectionnée n'a complété mais qu'un highlightColor est fourni (défis rares/secrets dans la vue générale),
   // on utilise cette couleur pour entourer la carte.
   let borderColor: string;
+  let textColor: string = "#f5f5f5"; // Couleur de texte par défaut
   if (suspenseMode) {
     borderColor = "#333333";
   } else if (mode === "team") {
@@ -137,6 +141,10 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({
     borderColor = highlightColor;
   } else {
     borderColor = "#333333";
+  }
+  if (makeUncolored) {
+    // Si makeUncolored est vrai, on force le texte à être non coloré/grisé
+    textColor = "#888888";
   }
 
   // Adapter les pastilles et la complétion lorsqu'on est en mode suspens
@@ -158,12 +166,12 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({
   return (
     <Card style={{ borderColor }} onClick={toggle}>
       <HeaderRow>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', color: textColor }}>
           {/* La flèche est dessinée via un pseudo-élément dans ArrowIcon. */}
           <ArrowIcon $open={open} />
-          <Title>{challenge.name}</Title>
+          <Title style={{ color: textColor }}>{challenge.name}</Title>
         </div>
-        <Points>{suspenseMode ? '???' : `${challenge.points} pts`}</Points>
+        <Points style={{ color: textColor }}>{suspenseMode ? '???' : `${challenge.points} pts`}</Points>
       </HeaderRow>
       {/* En mode général, n'afficher que les pastilles des équipes ayant complété le défi. */}
       {mode === "all" && displayStatuses && displayStatuses.some((s) => s.completed) && (
