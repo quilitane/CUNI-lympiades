@@ -71,8 +71,8 @@ async function loadInitialData(): Promise<{
   // 2. Tenter de charger depuis le backend
   try {
     const [teamsRes, challengesRes] = await Promise.all([
-      fetch("https://cuni-lympiades-backend.onrender.com/api/teams"),
-      fetch("https://cuni-lympiades-backend.onrender.com/api/challenges"),
+      fetch(`https://cuni-lympiades-backend.onrender.com/api/teams?t=${Date.now()}`),
+      fetch(`https://cuni-lympiades-backend.onrender.com/api/challenges?t=${Date.now()}`),
     ]);
     if (teamsRes.ok && challengesRes.ok) {
       const teams: Team[] = (await teamsRes.json()) as unknown as Team[];
@@ -146,8 +146,7 @@ export const DataProvider: React.FC<{
       // Ensuite, tenter de récupérer l'état global auprès du backend
       try {
         console.log("test");
-        const res = await fetch(
-          "https://cuni-lympiades-backend.onrender.com/api/state"
+        const res = await fetch(`https://cuni-lympiades-backend.onrender.com/api/state?t=${Date.now()}`
         );
         if (res.ok) {
           const data = await res.json();
@@ -239,7 +238,7 @@ export const DataProvider: React.FC<{
     });
     // Envoyer au backend
     try {
-      await fetch("https://cuni-lympiades-backend.onrender.com/api/validate", {
+      await fetch(`https://cuni-lympiades-backend.onrender.com/api/validate?t=${Date.now()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamId, challengeId }),
@@ -295,8 +294,7 @@ export const DataProvider: React.FC<{
     }
     // Envoyer la mise à jour au backend
     try {
-      await fetch(
-        "https://cuni-lympiades-backend.onrender.com/api/toggleDisabled",
+      await fetch(`https://cuni-lympiades-backend.onrender.com/api/toggleDisabled?t=${Date.now()}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -330,8 +328,7 @@ export const DataProvider: React.FC<{
     });
     // Envoyer au backend
     try {
-      await fetch(
-        "https://cuni-lympiades-backend.onrender.com/api/addPersonalPoints",
+      await fetch(`https://cuni-lympiades-backend.onrender.com/api/addPersonalPoints?t=${Date.now()}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -364,8 +361,7 @@ export const DataProvider: React.FC<{
     // Envoyer au backend pour qu'il persiste l'état global
     (async () => {
       try {
-        await fetch(
-          "https://cuni-lympiades-backend.onrender.com/api/setSuspense",
+        await fetch(`https://cuni-lympiades-backend.onrender.com/api/setSuspense?t=${Date.now()}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -387,8 +383,7 @@ export const DataProvider: React.FC<{
     // Envoyer au backend pour fixer la pause
     (async () => {
       try {
-        await fetch(
-          "https://cuni-lympiades-backend.onrender.com/api/setPause",
+        await fetch(`https://cuni-lympiades-backend.onrender.com/api/setPause?t=${Date.now()}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -410,8 +405,7 @@ export const DataProvider: React.FC<{
     // Envoyer au backend pour annuler la pause
     (async () => {
       try {
-        await fetch(
-          "https://cuni-lympiades-backend.onrender.com/api/setPause",
+        await fetch(`https://cuni-lympiades-backend.onrender.com/api/setPause?t=${Date.now()}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -472,7 +466,7 @@ export const DataProvider: React.FC<{
     });
     // Envoyer au backend
     try {
-      await fetch("https://cuni-lympiades-backend.onrender.com/api/swapPlayers", {
+      await fetch(`https://cuni-lympiades-backend.onrender.com/api/swapPlayers?t=${Date.now()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerId, targetTeamId, targetPlayerId }),
