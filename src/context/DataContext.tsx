@@ -45,30 +45,7 @@ async function loadInitialData(): Promise<{
   teams: Team[];
   challenges: Challenge[];
 }> {
-  // 1. Vérifier le localStorage
-  try {
-    const stored = localStorage.getItem("cunilyData");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Vérifier que les données stockées contiennent au moins une équipe et un défi
-      if (
-        Array.isArray(parsed.teams) &&
-        Array.isArray(parsed.challenges) &&
-        parsed.teams.length > 0 &&
-        parsed.challenges.length > 0
-      ) {
-        return parsed;
-      }
-      // Si les données sont vides ou corrompues, on les ignore
-      localStorage.removeItem("cunilyData");
-    }
-  } catch (err) {
-    console.warn(
-      "Impossible de récupérer les données depuis le localStorage:",
-      err
-    );
-  }
-  // 2. Tenter de charger depuis le backend
+  // Toujours charger depuis le backend
   try {
     const [teamsRes, challengesRes] = await Promise.all([
       fetch(`https://cuni-lympiades-backend.onrender.com/api/teams?t=${Date.now()}`),
@@ -86,7 +63,7 @@ async function loadInitialData(): Promise<{
       err
     );
   }
-  // 3. Fallback : importer les fichiers JSON statiques
+  // Fallback : importer les fichiers JSON statiques
   const teams: Team[] = (await import("../data/teams.json"))
     .default as unknown as Team[];
   const challenges: Challenge[] = (await import("../data/challenges.json"))
