@@ -67,7 +67,7 @@ const TeamChallengesView: React.FC = () => {
             if (challenge.winners.length > 0) {
               const winningTeam = teams.find((t) => t.id === challenge.winners[0]);
               highlight = winningTeam?.color;
-              makeUncolored = winningTeam?.id === selectedTeamId;
+              makeUncolored = winningTeam?.id !== selectedTeamId;
 
             }
             return (
@@ -90,9 +90,11 @@ const TeamChallengesView: React.FC = () => {
             const completed = challenge.winners.includes(selectedTeamId);
             // Highlight with winner's color if any
             let highlight: string | undefined;
+            let makeUncolored : boolean = false;
             if (challenge.winners.length > 0) {
               const winningTeam = teams.find((t) => t.id === challenge.winners[0]);
               highlight = winningTeam?.color;
+              makeUncolored = winningTeam?.id !== selectedTeamId;
             }
             return (
               <ChallengeCard
@@ -100,6 +102,7 @@ const TeamChallengesView: React.FC = () => {
                 challenge={challenge}
                 completedByTeam={completed}
                 highlightColor={highlight}
+                makeUncolored={makeUncolored}
                 mode="team"
               />
             );
