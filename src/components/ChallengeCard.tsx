@@ -169,9 +169,9 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', color: textColor }}>
           {/* La flèche est dessinée via un pseudo-élément dans ArrowIcon. */}
           <ArrowIcon $open={open} />
-            <Title style={{ color: textColor, textDecoration: "line-through" }}>{challenge.name}</Title>
+            <Title style={{ color: textColor, textDecoration: makeUncolored?"none":"line-through" }}>{challenge.name}</Title>
         </div>
-        <Points style={{ color: textColor, textDecoration: "line-through" }}>{suspenseMode ? '???' : `${challenge.points} pts`}</Points>
+        <Points style={{ color: textColor, textDecoration: makeUncolored?"none":"line-through" }}>{suspenseMode ? '???' : `${challenge.points} pts`}</Points>
       </HeaderRow>
       {/* En mode général, n'afficher que les pastilles des équipes ayant complété le défi. */}
       {mode === "all" && displayStatuses && displayStatuses.some((s) => s.completed) && (
