@@ -522,9 +522,9 @@ export const DataProvider: React.FC<{
         console.warn("Impossible de récupérer les tips:", err);
       }
     };
-    // premier chargement + polling toutes les 30s
+    // premier chargement + polling toutes les 360s
     fetchTips();
-    timer = setInterval(fetchTips, 30_000);
+    timer = setInterval(fetchTips, 360_000);
     return () => {
       if (timer) clearInterval(timer);
     };
