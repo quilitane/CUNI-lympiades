@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { Team, Challenge } from "../types";
 
+type ActiveTip = {
+  challengeId: string;
+  tip_txt: string;       // ISO
+  heure_reveal: string;  // ISO
+  heure_fin: string;     // ISO
+};
+
 interface DataContextValue {
   teams: Team[];
   challenges: Challenge[];
@@ -36,6 +43,9 @@ interface DataContextValue {
     targetTeamId: string,
     targetPlayerId: string
   ) => void;
+
+  /** Liste des tips actifs renvoyés par le backend. */
+  activeTips: ActiveTip[];
 }
 
 const DataContext = createContext<DataContextValue | undefined>(undefined);
@@ -84,6 +94,9 @@ export const DataProvider: React.FC<{
   const [suspenseOrder, setSuspenseOrder] = useState<string[]>([]);
   // Gestion des pauses : date ISO de reprise ou null
   const [pauseUntil, setPauseUntil] = useState<string | null>(null);
+
+  // ===== Ajout : tips actifs gérés par le DataContext (fetch backend onrender) =====
+  const [activeTips, setActiveTips] = useState<ActiveTip[]>([]);
 
   // Chargement des données au premier rendu
   useEffect(() => {
@@ -489,6 +502,34 @@ export const DataProvider: React.FC<{
     }
   };
 
+  // ===== Ajout : récupération régulière des tips actifs depuis le backend =====
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const fetchTips = async () => {
+      try {
+        const res = await fetch(
+          `https://cuni-lympiades-backend.onrender.com/api/tips?t=${Date.now()}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data?.tips)) {
+            setActiveTips(data.tips as ActiveTip[]);
+          } else {
+            setActiveTips([]);
+          }
+        }
+      } catch (err) {
+        console.warn("Impossible de récupérer les tips:", err);
+      }
+    };
+    // premier chargement + polling toutes les 30s
+    fetchTips();
+    timer = setInterval(fetchTips, 30_000);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, []);
+
   const value: DataContextValue = {
     teams,
     challenges,
@@ -503,6 +544,7 @@ export const DataProvider: React.FC<{
     startPause,
     cancelPause,
     swapPlayers,
+    activeTips, // <-- exposé au contexte (AJOUT)
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

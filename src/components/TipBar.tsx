@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo } from "react";
 import { useData } from "../context/DataContext"; // ajuste le chemin si besoin
 
 type ActiveTip = {
@@ -18,63 +18,24 @@ type TipBarProps = {
 /**
  * <TipBar />
  * - Affiche un bandeau rouge, fixé en haut de page, avec "Indices : " statique
- * - Les tips actifs (fournis par le backend /api/tips) défilent vers la gauche
+ * - Les tips actifs (fournis par le backend /api/tips via DataContext) défilent vers la gauche
  * - Masqué automatiquement si aucun tip actif
  * - Respecte le suspenseMode (si true -> pas d’affichage)
  */
-const TipBar: React.FC<TipBarProps> = ({ challengeId, refreshMs = 30_000 }) => {
-  const { suspenseMode } = useData();
-  const [tips, setTips] = useState<ActiveTip[]>([]);
-  const [loading, setLoading] = useState(false);
-  const mounted = useRef(true);
-
-  // Récupération périodique des tips actifs
-  useEffect(() => {
-    mounted.current = true;
-
-    const fetchTips = async () => {
-      try {
-        setLoading(true);
-        const qs = new URLSearchParams();
-        if (challengeId) qs.set("challengeId", challengeId);
-        // cache busting
-        qs.set("t", String(Date.now()));
-
-        const res = await fetch(`/api/tips?${qs.toString()}`);
-        if (!res.ok) return; // on ne casse pas l’UI
-        const data = await res.json();
-        if (mounted.current && Array.isArray(data?.tips)) {
-          setTips(data.tips as ActiveTip[]);
-        }
-      } catch {
-        // ignore réseau
-      } finally {
-        mounted.current && setLoading(false);
-      }
-    };
-
-    // premier fetch immédiat
-    fetchTips();
-    // polling
-    const id = setInterval(fetchTips, refreshMs);
-    return () => {
-      mounted.current = false;
-      clearInterval(id);
-    };
-  }, [challengeId, refreshMs]);
+const TipBar: React.FC<TipBarProps> = () => {
+  const { suspenseMode, activeTips } = useData();
 
   // Texte à défiler : on concatène les tips actifs
   const marqueeText = useMemo(() => {
-    if (!tips.length) return "";
+    if (!activeTips?.length) return "";
     // Exemple : [ "Indice A", "Indice B", "Indice C" ] -> "Indice A  •  Indice B  •  Indice C"
-    return tips.map((t) => t.tip_txt.trim()).filter(Boolean).join("   •   ");
-  }, [tips]);
+    return activeTips.map((t) => (t.tip_txt || "").trim()).filter(Boolean).join("   •   ");
+  }, [activeTips]);
 
   // Rien à afficher si:
   // - mode suspens actif
-  // - en cours de chargement initial ET pas de tips
   // - pas de tips actifs
-  if (suspenseMode || (!loading && tips.length === 0)) {
+  if (suspenseMode || !marqueeText) {
     return null;
   }
 
